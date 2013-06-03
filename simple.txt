@@ -1,0 +1,22 @@
+#------ environment
+title: MSCA
+timer-milliseconds: 100
+world-width: 40
+world-height: 30
+cell-width : 16
+cell-height : 16
+
+
+#-------- transformation rules
+#
+neighborhood-distance: 1
+
+red-rule:  (if (or (and (< (r 0) 100) (< (r 1) 100) (< (r 2) 100)) (and (= (r 0) 255) (= (r 1) 255) (= (r 2) 255)))  0 255)
+green-rule:   0
+blue-rule:   0
+
+
+
+
+
+
