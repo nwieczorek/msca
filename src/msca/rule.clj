@@ -63,19 +63,24 @@
     i))
 
 
-(defn rule-to-function
+(defn rule-to-update-function
   [ruleset key]
   (let [neighbors (+ (* 2 (ruleset :neighborhood-distance)) 1)
         raw-rule (ruleset key)]
     (eval 
       (list 'fn ['r 'g 'b] raw-rule))))
 
+(defn rule-to-initial-function
+  [ruleset key]
+  (let [raw-rule (ruleset key)]
+    (eval 
+      (list 'fn [] raw-rule))))
 
 (defn main
   [filename]
   (let [ruleset (read-rules filename)]
     (prn ruleset)
     (println)
-    (prn ((rule-to-function ruleset :red-rule) [0] [0] [0]))
+    (prn ((rule-to-update-function ruleset :red-rule) [0] [0] [0]))
     ;(prn (rule-to-function ruleset :red-rule))
     ))

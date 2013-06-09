@@ -50,22 +50,18 @@
   [(random-comp) (random-comp) (random-comp)]
   )
 
-(defn make-cell-column
-  [ruleset make-type]
-  (let [cell-f  (cond
-                  (= make-type :empty)  
-                  make-cell
-                  (= make-type :active) 
-                  make-random-cell)]
+(defn make-initial-column
+  [ruleset]
+  (let [red-func (rule/rule-to-initial-function ruleset :red-initial)
+        green-func (rule/rule-to-initial-function ruleset :green-initial)
+        blue-func (rule/rule-to-initial-function ruleset :blue-initial)
+        cell-f  (fn [] [ (red-func) (green-func) (blue-func)])]
     (into [] (repeatedly (ruleset :world-height) cell-f))))
+
 
 (defn make-world
   [ruleset]
-    { :cells (into [] 
-                    (concat 
-                      (list (make-cell-column ruleset :active))
-                      (repeatedly (- (ruleset :world-width) 1) #(make-cell-column ruleset :empty))
-                      ))
+    { :cells (make-initial-column ruleset)
       :width (ruleset :world-width)
       :height (ruleset :world-height)
       :rules ruleset
@@ -73,23 +69,11 @@
    )
 
 (defn get-state
-  ([world x y]
-   (assert (and (not (nil? x)) (not (nil? y))) (str "X " x " y " y))
-   (assert (> (count (world :cells)) x) (str "X is out of range " (count (world :cells)) "," x))
-   (assert (>= x 0) (str "x out of range:" x))
-    (let [col ((world :cells) x)] 
-      (assert (>= (count col) y) (str "Y is out of range " (count col) "," y))
-      (col y)))
-  ([world p]
-   (let [[x y] p]
-     (get-state world x y))))
+  [world y]
+  (let [cells (world :cells)]
+  (assert (>= (count cells) y) (str "Y is out of range " (count cells) "," y))
+    (cells y)))
 
-(defn get-cell-state
-  ([cells x y]
-    ((cells x) y))
-  ([cells p]
-   (let [[x y] p]
-     (get-cell-state cells x y))))
 
 
 (defn get-neighbors
@@ -119,9 +103,9 @@
   [ruleset input-col]
   (let [height (ruleset :world-height)
         neighborhood (ruleset :neighborhood-distance)
-        red-func (rule/rule-to-function ruleset :red-rule)
-        green-func (rule/rule-to-function ruleset :green-rule)
-        blue-func (rule/rule-to-function ruleset :blue-rule)]
+        red-func (rule/rule-to-update-function ruleset :red-rule)
+        green-func (rule/rule-to-update-function ruleset :green-rule)
+        blue-func (rule/rule-to-update-function ruleset :blue-rule)]
     (into []
       (for [y (range height)]
         (let [[rs gs bs] (get-neighbors input-col y height neighborhood )]
@@ -132,11 +116,12 @@
 
 (defn update
   [world]
-  (let [input-col ((world :cells) 0)
+  (let [;start-time (System/currentTimeMillis)
+        input-col (world :cells) 
         new-col (get-new-col (world :rules) input-col)
-        new-cells (into [] (concat (list new-col)
-                              (subvec (world :cells) 0 (- (world :width) 1))))]
-    (assoc world :cells new-cells)))
+        end-time (System/currentTimeMillis)]
+    ;(println "updated in " (- end-time start-time))
+    (assoc world :cells new-col)))
 
     
 
